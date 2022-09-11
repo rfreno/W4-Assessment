@@ -19,6 +19,7 @@ const getFortune = () => {
     });
 };
 
+// submitHandler
 const submitHandler = (event) => {
     event.preventDefault()
 
@@ -26,24 +27,51 @@ const submitHandler = (event) => {
     let inputString = {
         string: input.value
     } 
-    addGratitude(inputString)
+    showGratitude(inputString)
 
     input.value = ''
 }
 
-const addGratitude = string => {
+const showGratitude = string => {
     axios.post("http://localhost:4000/api/gratitude", string)
-        .then(res => {
+    .then(res => {
             const dataLine = document.createElement('div')
-            const delBtn = document.createElement('button')
-            const edBtn = document.createElement('button')
-            const data = document.createElement('p')
-            delBtn.textContent = "Delete"
-            edBtn.textContent = "Edit"
-            data.textContent = res.data.string
-            dataLine.append(data, delBtn, edBtn)
+            dataLine.innerHTML = `
+                <div class ='btns-container' id=${res.data.id}>
+                    <p>${res.data.string}</p>
+                    <button onclick="deleteMe(${res.data.id})" class='deleteBtn'>delete</button>
+                    <button onclick="vote(${res.data.id},'up')" id="up" class="votingBtn">${res.data.upvote}</button>
+                    <button onclick="vote(${res.data.id},'down')" id="down" class="votingBtn">${res.data.downvote}</button>
+                </div>
+            `
             gratitudeList.append(dataLine)
-        })
+    }
+    )}
+
+const deleteMe = id => {
+    // send request to delete on backend
+    axios.delete(`http://localhost:4000/api/gratitude/${id}`)
+        .then(res => {
+            // delete div on front-end
+            const toDelete = document.getElementById(Number(res.data))
+            toDelete.remove()
+        }
+        )
+}
+
+const vote = (id, type) => {
+    axios.put(`http://localhost:4000/api/gratitude/${id}`, {type}).then(
+        res => {
+
+            if (type === 'up') {
+                const toUpdate = document.getElementById(Number(res.data.id)).querySelector("#up")                
+                toUpdate.textContent = res.data.upvote
+            } else if (type === 'down') {
+                const toUpdate = document.getElementById(Number(res.data.id)).querySelector("#down")
+                toUpdate.textContent = res.data.downvote
+            }
+        }
+    )
 }
 
 complimentBtn.addEventListener('click', getCompliment)

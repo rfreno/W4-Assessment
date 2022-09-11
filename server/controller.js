@@ -1,4 +1,5 @@
 let globalID = 0
+let list = []
 
 module.exports = {
 
@@ -24,11 +25,29 @@ module.exports = {
         let { string } = req.body
         let gratitude = {
             string,
-            id: globalID
+            id: globalID,
+            upvote: 0,
+            downvote: 0
         }
-        console.log(gratitude.id)
+        list.push(gratitude)
         res.status(200).send(gratitude)
         globalID++
-    }
+    },
+    deleteMe: (req, res) => {
+        let index = list.findIndex(elem => elem.id === +req.params.id)
+        list.splice(index,1)
+        res.status(200).send(req.params.id)
+    },
+    vote: (req, res) => {
+        const { type } = req.body        
+        let index = list.findIndex(elem => elem.id === +req.params.id)
+        
+        if (type === 'up') {
+            list[index].upvote += 1
+        } else if (type === 'down') {
+            list[index].downvote +=1
+        }
 
+        res.status(200).send(list[index])
+    }
 }
